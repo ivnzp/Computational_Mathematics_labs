@@ -113,19 +113,25 @@ else:
             break
         z = z_new
 
-    print(f"\nНайденный корень: Z = {z:.12e}")
+    print(f"\nНайденный корень: Z = {z:.6e}")
 
     P1 = P3 * z ** n_val
     P2 = P1
-    C2 = (P2 / P3) ** ((gamma3 - 1) / (2 * gamma3))
+    C2 = C3 * (P2 / P3) ** ((gamma3 - 1) / (2 * gamma3))
     U2 = U3 + 2 * (C3 - C2) / (gamma3 - 1)
     U1 = U2
     rho1 = rho0 * ((gamma0 - 1) + (gamma0 + 1) * P1 / P0) / ((gamma0 + 1) + (gamma0 - 1) * P1 / P0)
-    D = (rho1 * U1 - rho0 * U0) / (rho1 - rho0)
+    D0 = (rho1 * U1 - rho0 * U0) / (rho1 - rho0)
 
     print("\nОбратный расчет:")
     print(f"P1 = P2 = {P1:.6e}")
     print(f"C2 = {C2:.6e}")
     print(f"U1 = U2 = {U1:.6e}")
     print(f"rho1 = {rho1:.6e}")
-    print(f"D = {D:.6e}")
+    print(f"D0 (ударная) = {D0:.6e}")
+
+    a_cr = (P1 - P0) / (rho1 - rho0)
+    lambda0 = (U0 - D0) / a_cr**0.5
+    lambda1 = (U1 - D0) / a_cr**0.5
+    print()
+    print(lambda0, lambda1, lambda1*lambda0)
