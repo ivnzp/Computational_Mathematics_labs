@@ -1,0 +1,72 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import CubicSpline
+
+# Узлы интерполяции
+x_nodes = np.array([0.52360, 0.87267, 1.22173, 1.57080, 1.91986])
+y_nodes = np.array([0.00000, 0.00017, 0.00199, 0.01282, 0.05744])
+
+# 1. Интерполяция многочленом Лагранжа
+def lagrange_interpolation(x, x_nodes, y_nodes):
+    n = len(x_nodes)
+    result = 0.0
+    for i in range(n):
+        term = y_nodes[i]
+        for j in range(n):
+            if i != j:
+                term *= (x - x_nodes[j]) / (x_nodes[i] - x_nodes[j])
+        result += term
+    return result
+
+# Вычисление коэффициентов многочлена Лагранжа
+def lagrange_coefficients(x_nodes, y_nodes):
+    n = len(x_nodes)
+    poly = np.poly1d(0.0)
+    for i in range(n):
+        p = np.poly1d(y_nodes[i])
+        for j in range(n):
+            if i != j:
+                p *= np.poly1d([1, -x_nodes[j]]) / (x_nodes[i] - x_nodes[j])
+        poly += p
+    return poly.coeffs
+
+# 2. Интерполяция кубическим сплайном
+cubic_spline = CubicSpline(x_nodes, y_nodes)
+
+# Генерация точек для графиков
+x_dense = np.linspace(min(x_nodes), max(x_nodes), 1000)
+y_lagrange = [lagrange_interpolation(x, x_nodes, y_nodes) for x in x_dense]
+y_spline = cubic_spline(x_dense)
+
+# Вывод результатов
+print("Коэффициенты многочлена Лагранжа (от старшей степени к младшей):")
+lagrange_coeffs = lagrange_coefficients(x_nodes, y_nodes)
+for i, coeff in enumerate(lagrange_coeffs):
+    print(f"x^{len(lagrange_coeffs)-1-i}: {coeff:.10f}")
+
+print("\nКоэффициенты кубического сплайна:")
+for i in range(len(cubic_spline.x)-1):
+    print(f"Отрезок {i+1} (x ∈ [{cubic_spline.x[i]:.5f}, {cubic_spline.x[i+1]:.5f}]):")
+    print(f"  a0: {cubic_spline.c[0,i]:.10f}")
+    print(f"  a1: {cubic_spline.c[1,i]:.10f}")
+    print(f"  a2: {cubic_spline.c[2,i]:.10f}")
+    print(f"  a3: {cubic_spline.c[3,i]:.10f}")
+
+print("\nЗначения в узлах интерполяции:")
+print("Узел\t\tЛагранж\t\tСплайн\t\tИсходное")
+for i, x in enumerate(x_nodes):
+    y_l = lagrange_interpolation(x, x_nodes, y_nodes)
+    y_s = cubic_spline(x)
+    print(f"{x:.5f}\t{y_l:.5f}\t{y_s:.5f}\t{y_nodes[i]:.5f}")
+
+# Построение графиков
+plt.figure(figsize=(12, 6))
+plt.plot(x_dense, y_lagrange, 'b-', label='Многочлен Лагранжа', linewidth=2)
+plt.plot(x_dense, y_spline, 'r--', label='Кубический сплайн', linewidth=2)
+plt.plot(x_nodes, y_nodes, 'ko', label='Узлы интерполяции', markersize=8)
+plt.xlabel('x')
+plt.ylabel('y')
+plt.title('Сравнение интерполяции: Лагранж vs Сплайн')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
